@@ -1,0 +1,34 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Source", "Source", "{44BD7A87-B865-4DC9-A21A-4B4AA5DDD7F1}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Sam.Validator.Api", "Source\Sam.Validator.Api\Sam.Validator.Api.csproj", "{6BE68BBD-095F-4B92-8C21-C06123970915}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Sam.Validator", "Source\Sam.Validator\Sam.Validator.csproj", "{81BDF229-8260-4C82-8218-647F67848BBE}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{6BE68BBD-095F-4B92-8C21-C06123970915}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6BE68BBD-095F-4B92-8C21-C06123970915}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6BE68BBD-095F-4B92-8C21-C06123970915}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6BE68BBD-095F-4B92-8C21-C06123970915}.Release|Any CPU.Build.0 = Release|Any CPU
+		{81BDF229-8260-4C82-8218-647F67848BBE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{81BDF229-8260-4C82-8218-647F67848BBE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{81BDF229-8260-4C82-8218-647F67848BBE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{81BDF229-8260-4C82-8218-647F67848BBE}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{6BE68BBD-095F-4B92-8C21-C06123970915} = {44BD7A87-B865-4DC9-A21A-4B4AA5DDD7F1}
+		{81BDF229-8260-4C82-8218-647F67848BBE} = {44BD7A87-B865-4DC9-A21A-4B4AA5DDD7F1}
+	EndGlobalSection
+EndGlobal
