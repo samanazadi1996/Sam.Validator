@@ -9,39 +9,29 @@ namespace Sam.Validator
 {
     public abstract class Validator<T> : IValidatableObject
     {
-        private Dictionary<string, List<string>> Errors;
-        private object Value;
+        private Dictionary<string, List<string>> errors;
+        private string? currentField;
+        private object? value;
         public abstract void Validate();
 
         protected T RuleFor(Expression<Func<T, object?>> expression)
         {
-            Errors ??= new Dictionary<string, List<string>>();
-
-            string? fieldName = null;
-
-            if (expression.Body is MemberExpression member)
-                fieldName = member.Member.Name;
-
-            if (expression.Body is UnaryExpression unary && unary.Operand is MemberExpression memberOperand)
-                fieldName = memberOperand.Member.Name;
+            errors ??= new Dictionary<string, List<string>>();
 
             if (expression == null)
-                throw new ArgumentNullException(nameof(expression), "Validation expression is not set.");
+                throw new ArgumentNullException(nameof(expression), "Validation expression is required.");
 
-            if (fieldName != null)
-            {
-                Errors.TryAdd(fieldName, new List<string>());
-                Errors = Errors.OrderBy(p => p.Key == fieldName).ToDictionary(p => p.Key, x => x.Value);
-            }
+            currentField = GetFieldName(expression);
+            value = expression.Compile().Invoke((T)(object)this!);
 
-            Value = expression.Compile()((T)(object)this!);
+            if (!errors.ContainsKey(currentField))
+                errors[currentField] = new List<string>();
 
             return (T)(object)this!;
         }
-
         protected T NotNull()
         {
-            if (Value is null)
+            if (value is null)
                 AddError("Value cannot be null.");
 
             return (T)(object)this!;
@@ -49,7 +39,7 @@ namespace Sam.Validator
 
         protected T NotEmpty()
         {
-            if (string.IsNullOrWhiteSpace(Value?.ToString()))
+            if (string.IsNullOrWhiteSpace(value?.ToString()))
                 AddError("Value cannot be empty.");
 
             return (T)(object)this!;
@@ -57,21 +47,21 @@ namespace Sam.Validator
 
         protected T Min(int min)
         {
-            if (int.TryParse(Value?.ToString(), out var value) && value < min)
+            if (int.TryParse(value?.ToString(), out var _value) && _value < min)
                 AddError($"Minimum allowed value is {min}.");
             return (T)(object)this!;
         }
 
         protected T Max(int max)
         {
-            if (int.TryParse(Value?.ToString(), out var value) && value > max)
+            if (int.TryParse(value?.ToString(), out var _value) && _value > max)
                 AddError($"Maximum allowed value is {max}.");
             return (T)(object)this!;
         }
 
         protected T Length(int minLength, int maxLength)
         {
-            var value = Value?.ToString();
+            var value = this.value?.ToString();
             if (value != null && (value.Length < minLength || value.Length > maxLength))
                 AddError($"Value must be between {minLength} and {maxLength} characters.");
             return (T)(object)this!;
@@ -79,7 +69,7 @@ namespace Sam.Validator
 
         protected T Matches(string pattern)
         {
-            var value = Value?.ToString();
+            var value = this.value?.ToString();
             if (value != null && !Regex.IsMatch(value, pattern))
                 AddError($"Value does not match the required pattern.");
             return (T)(object)this!;
@@ -94,7 +84,7 @@ namespace Sam.Validator
 
         protected T Email()
         {
-            var value = Value?.ToString();
+            var value = this.value?.ToString();
             if (!string.IsNullOrWhiteSpace(value) && !Regex.IsMatch(value, @"^[^@\s]+@[^@\s]+\.[^@\s]+$"))
                 AddError("Invalid email format.");
             return (T)(object)this!;
@@ -102,7 +92,7 @@ namespace Sam.Validator
 
         protected T In(params string[] allowed)
         {
-            var value = Value?.ToString();
+            var value = this.value?.ToString();
             if (!string.IsNullOrWhiteSpace(value) && !allowed.Contains(value))
                 AddError($"Value must be one of the following: {string.Join(", ", allowed)}");
             return (T)(object)this!;
@@ -110,7 +100,7 @@ namespace Sam.Validator
 
         protected T GreaterThan<TValue>(TValue min) where TValue : IComparable
         {
-            if (Value is TValue comparable && comparable.CompareTo(min) <= 0)
+            if (value is TValue comparable && comparable.CompareTo(min) <= 0)
                 AddError($"Value must be greater than {min}.");
             return (T)(object)this!;
         }
@@ -127,7 +117,7 @@ namespace Sam.Validator
 
         protected T LessThan<TValue>(TValue max) where TValue : IComparable
         {
-            if (Value is TValue comparable && comparable.CompareTo(max) >= 0)
+            if (value is TValue comparable && comparable.CompareTo(max) >= 0)
                 AddError($"Value must be less than {max}.");
             return (T)(object)this!;
         }
@@ -137,13 +127,24 @@ namespace Sam.Validator
         {
             Validate();
 
-            return Errors.SelectMany(p => p.Value.Distinct().Select(x => new ValidationResult(x, new string[] { p.Key })));
+            return errors.SelectMany(p => p.Value.Distinct().Select(x => new ValidationResult(x, new string[] { p.Key })));
         }
 
         void AddError(string message)
         {
-            Errors.LastOrDefault().Value.Add(message);
+            if (currentField != null && errors.ContainsKey(currentField))
+                errors[currentField].Add(message);
         }
+        private static string GetFieldName(Expression<Func<T, object?>> expression)
+        {
+            return expression.Body switch
+            {
+                MemberExpression member => member.Member.Name,
+                UnaryExpression unary when unary.Operand is MemberExpression memberOperand => memberOperand.Member.Name,
+                _ => throw new InvalidOperationException("Invalid expression provided.")
+            };
+        }
+
     }
 
 }
