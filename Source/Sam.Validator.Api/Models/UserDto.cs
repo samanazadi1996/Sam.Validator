@@ -1,6 +1,6 @@
 ﻿namespace Sam.Validator.Api.Models;
 
-public class UserDto : Validator<UserDto>
+public partial class UserDto
 {
     public string? Username { get; set; }
     public string? Email { get; set; }
@@ -9,6 +9,9 @@ public class UserDto : Validator<UserDto>
     public string? Password { get; set; }
     public DateTime BirthDate { get; set; }
 
+}
+public partial class UserDto : Validator<UserDto>
+{
     public override void Validate()
     {
         RuleFor(x => x.Username)

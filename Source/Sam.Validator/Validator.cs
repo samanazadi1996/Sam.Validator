@@ -9,117 +9,120 @@ namespace Sam.Validator
 {
     public abstract class Validator<T> : IValidatableObject
     {
-        private Dictionary<string, List<string>> errors;
+        private Dictionary<string, List<string>> errors = new Dictionary<string, List<string>>();
         private string? currentField;
         private object? value;
+        T Instance => (T)(object)this!;
         public abstract void Validate();
 
         protected T RuleFor(Expression<Func<T, object?>> expression)
         {
-            errors ??= new Dictionary<string, List<string>>();
-
             if (expression == null)
                 throw new ArgumentNullException(nameof(expression), "Validation expression is required.");
 
             currentField = GetFieldName(expression);
-            value = expression.Compile().Invoke((T)(object)this!);
+            value = expression.Compile().Invoke(Instance);
 
-            if (!errors.ContainsKey(currentField))
-                errors[currentField] = new List<string>();
-
-            return (T)(object)this!;
+            return Instance;
         }
         protected T NotNull()
         {
             if (value is null)
-                AddError("Value cannot be null.");
+                AddError(Localizer.Get(ValidationMessages.ValueCannotBeNull));
 
-            return (T)(object)this!;
+            return Instance;
         }
 
         protected T NotEmpty()
         {
             if (string.IsNullOrWhiteSpace(value?.ToString()))
-                AddError("Value cannot be empty.");
+                AddError(Localizer.Get(ValidationMessages.ValueCannotBeEmpty));
 
-            return (T)(object)this!;
+            return Instance;
         }
 
         protected T Min(int min)
         {
             if (int.TryParse(value?.ToString(), out var _value) && _value < min)
-                AddError($"Minimum allowed value is {min}.");
-            return (T)(object)this!;
+                AddError(Localizer.Get(ValidationMessages.MinimumValue, min));
+
+            return Instance;
         }
 
         protected T Max(int max)
         {
             if (int.TryParse(value?.ToString(), out var _value) && _value > max)
-                AddError($"Maximum allowed value is {max}.");
-            return (T)(object)this!;
+                AddError(Localizer.Get(ValidationMessages.MaximumValue, max));
+
+            return Instance;
         }
 
         protected T Length(int minLength, int maxLength)
         {
             var value = this.value?.ToString();
             if (value != null && (value.Length < minLength || value.Length > maxLength))
-                AddError($"Value must be between {minLength} and {maxLength} characters.");
-            return (T)(object)this!;
+                AddError(Localizer.Get(ValidationMessages.LengthRange, minLength, maxLength));
+
+            return Instance;
         }
 
         protected T Matches(string pattern)
         {
             var value = this.value?.ToString();
             if (value != null && !Regex.IsMatch(value, pattern))
-                AddError($"Value does not match the required pattern.");
-            return (T)(object)this!;
+                AddError(Localizer.Get(ValidationMessages.PatternMismatch));
+
+            return Instance;
         }
 
         protected T Must(Func<bool> condition)
         {
             if (!condition())
-                AddError("Custom validation failed.");
-            return (T)(object)this!;
+                AddError(Localizer.Get(ValidationMessages.CustomConditionFailed));
+
+            return Instance;
         }
 
         protected T Email()
         {
             var value = this.value?.ToString();
             if (!string.IsNullOrWhiteSpace(value) && !Regex.IsMatch(value, @"^[^@\s]+@[^@\s]+\.[^@\s]+$"))
-                AddError("Invalid email format.");
-            return (T)(object)this!;
+                AddError(Localizer.Get(ValidationMessages.InvalidEmail));
+
+            return Instance;
         }
 
         protected T In(params string[] allowed)
         {
             var value = this.value?.ToString();
             if (!string.IsNullOrWhiteSpace(value) && !allowed.Contains(value))
-                AddError($"Value must be one of the following: {string.Join(", ", allowed)}");
-            return (T)(object)this!;
+                AddError(Localizer.Get(ValidationMessages.MustBeOneOf, string.Join(", ", allowed)));
+
+            return Instance;
         }
 
         protected T GreaterThan<TValue>(TValue min) where TValue : IComparable
         {
             if (value is TValue comparable && comparable.CompareTo(min) <= 0)
-                AddError($"Value must be greater than {min}.");
-            return (T)(object)this!;
+                AddError(Localizer.Get(ValidationMessages.GreaterThan, min));
+
+            return Instance;
         }
 
         protected T Must(Func<T, bool> predicate, string? errorMessage = null)
         {
-            if (!predicate((T)(object)this!))
-            {
-                AddError(errorMessage ?? "Custom condition failed.");
-            }
+            if (!predicate(Instance))
+                AddError(errorMessage ?? Localizer.Get(ValidationMessages.CustomConditionFailed));
 
-            return (T)(object)this!;
+            return Instance;
         }
 
         protected T LessThan<TValue>(TValue max) where TValue : IComparable
         {
             if (value is TValue comparable && comparable.CompareTo(max) >= 0)
-                AddError($"Value must be less than {max}.");
-            return (T)(object)this!;
+                AddError(Localizer.Get(ValidationMessages.LessThan, max));
+
+            return Instance;
         }
 
 
@@ -132,9 +135,15 @@ namespace Sam.Validator
 
         void AddError(string message)
         {
-            if (currentField != null && errors.ContainsKey(currentField))
+            if (currentField != null)
+            {
+                if (!errors.ContainsKey(currentField))
+                    errors[currentField] = new List<string>();
+
                 errors[currentField].Add(message);
+            }
         }
+
         private static string GetFieldName(Expression<Func<T, object?>> expression)
         {
             return expression.Body switch
