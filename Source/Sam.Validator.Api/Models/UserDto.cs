@@ -1,4 +1,6 @@
-﻿namespace Sam.Validator.Api.Models;
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace Sam.Validator.Api.Models;
 
 public partial class UserDto : Validator<UserDto>
 {
@@ -9,7 +11,7 @@ public partial class UserDto : Validator<UserDto>
     public string? Password { get; set; }
     public DateTime BirthDate { get; set; }
 
-    public override void Validate()
+    public override void HandleValidation(ValidationContext validationContext)
     {
         RuleFor(x => x.Username)
             .NotNull()

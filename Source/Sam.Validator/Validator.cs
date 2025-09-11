@@ -13,7 +13,7 @@ namespace Sam.Validator
         private string? currentField;
         private object? value;
         T Instance => (T)(object)this!;
-        public abstract void Validate();
+        public abstract void HandleValidation(ValidationContext validationContext);
 
         protected T RuleFor(Expression<Func<T, object?>> expression)
         {
@@ -128,7 +128,7 @@ namespace Sam.Validator
 
         public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
         {
-            Validate();
+            HandleValidation(validationContext);
 
             return errors.SelectMany(p => p.Value.Distinct().Select(x => new ValidationResult(x, new string[] { p.Key })));
         }
