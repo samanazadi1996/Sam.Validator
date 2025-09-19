@@ -12,6 +12,8 @@ namespace Sam.Validator
         private Dictionary<string, List<string>> errors = new Dictionary<string, List<string>>();
         private string? currentField;
         private object? value;
+        private string? lastError; // آخرین خطای اضافه شده
+
         T Instance => (T)(object)this!;
         public abstract void HandleValidation(ValidationContext validationContext);
 
@@ -109,10 +111,10 @@ namespace Sam.Validator
             return Instance;
         }
 
-        protected T Must(Func<T, bool> predicate, string? errorMessage = null)
+        protected T Must(Func<T, bool> predicate)
         {
             if (!predicate(Instance))
-                AddError(errorMessage ?? Localizer.Get(ValidationMessages.CustomConditionFailed));
+                AddError(Localizer.Get(ValidationMessages.CustomConditionFailed));
 
             return Instance;
         }
@@ -124,7 +126,6 @@ namespace Sam.Validator
 
             return Instance;
         }
-
 
         public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
         {
@@ -141,6 +142,7 @@ namespace Sam.Validator
                     errors[currentField] = new List<string>();
 
                 errors[currentField].Add(message);
+                lastError = message;
             }
         }
 
@@ -154,6 +156,20 @@ namespace Sam.Validator
             };
         }
 
+        protected T WithMessage(string errorMessage)
+        {
+            if (currentField != null && lastError != null && errors.ContainsKey(currentField))
+            {
+                var list = errors[currentField];
+                var index = list.LastIndexOf(lastError);
+                if (index >= 0)
+                {
+                    list[index] = errorMessage;
+                    lastError = errorMessage;
+                }
+            }
+            return Instance;
+        }
     }
 
 }

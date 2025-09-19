@@ -37,10 +37,11 @@ public partial class UserDto : Validator<UserDto>
         RuleFor(x => x.Password)
             .NotNull()
             .Length(8, 100)
-            .Matches(@"[A-Z]").Must(x => x.Password!.Any(char.IsUpper), "Password must contain at least one uppercase letter.")
-            .Must(x => x.Password!.Any(char.IsDigit), "Password must contain at least one digit.");
+            .Matches(@"[A-Z]")
+            .Must(x => x.Password!.Any(char.IsUpper)).WithMessage("Password must contain at least one uppercase letter.")
+            .Must(x => x.Password!.Any(char.IsDigit)).WithMessage("Password must contain at least one digit.");
 
         RuleFor(x => x.BirthDate)
-            .Must(x => x.BirthDate < DateTime.Now, "BirthDate must be in the past.");
+            .Must(x => x.BirthDate < DateTime.Now).WithMessage("BirthDate must be in the past.");
     }
 }

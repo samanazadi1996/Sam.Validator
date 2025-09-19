@@ -1,4 +1,4 @@
-using Sam.Validator.Api.Extensions;
+﻿using Sam.Validator.Api.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -6,7 +6,10 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
 
-builder.Services.AddSwaggerGen();
+builder.Services.AddSwaggerGen(c =>
+{
+    c.OperationFilter<AcceptLanguageHeaderOperationFilter>();
+});
 
 builder.Services.AddCustomLocalization();
 
