@@ -12,7 +12,7 @@ namespace Sam.Validator
         private Dictionary<string, List<string>> errors = new Dictionary<string, List<string>>();
         private string? currentField;
         private object? value;
-        private string? lastError; // آخرین خطای اضافه شده
+        private string? lastError;
 
         T Instance => (T)(object)this!;
         public abstract void HandleValidation(ValidationContext validationContext);
@@ -30,7 +30,7 @@ namespace Sam.Validator
         protected T NotNull()
         {
             if (value is null)
-                AddError(Localizer.Get(ValidationMessages.ValueCannotBeNull));
+                AddError(ValidationMessages.Get(ValidationMessages.ValueCannotBeNull));
 
             return Instance;
         }
@@ -38,7 +38,7 @@ namespace Sam.Validator
         protected T NotEmpty()
         {
             if (string.IsNullOrWhiteSpace(value?.ToString()))
-                AddError(Localizer.Get(ValidationMessages.ValueCannotBeEmpty));
+                AddError(ValidationMessages.Get(ValidationMessages.ValueCannotBeEmpty));
 
             return Instance;
         }
@@ -46,7 +46,7 @@ namespace Sam.Validator
         protected T Min(int min)
         {
             if (int.TryParse(value?.ToString(), out var _value) && _value < min)
-                AddError(Localizer.Get(ValidationMessages.MinimumValue, min));
+                AddError(ValidationMessages.Get(ValidationMessages.MinimumValue, min));
 
             return Instance;
         }
@@ -54,7 +54,7 @@ namespace Sam.Validator
         protected T Max(int max)
         {
             if (int.TryParse(value?.ToString(), out var _value) && _value > max)
-                AddError(Localizer.Get(ValidationMessages.MaximumValue, max));
+                AddError(ValidationMessages.Get(ValidationMessages.MaximumValue, max));
 
             return Instance;
         }
@@ -63,7 +63,7 @@ namespace Sam.Validator
         {
             var value = this.value?.ToString();
             if (value != null && (value.Length < minLength || value.Length > maxLength))
-                AddError(Localizer.Get(ValidationMessages.LengthRange, minLength, maxLength));
+                AddError(ValidationMessages.Get(ValidationMessages.LengthRange, minLength, maxLength));
 
             return Instance;
         }
@@ -72,7 +72,7 @@ namespace Sam.Validator
         {
             var value = this.value?.ToString();
             if (value != null && !Regex.IsMatch(value, pattern))
-                AddError(Localizer.Get(ValidationMessages.PatternMismatch));
+                AddError(ValidationMessages.Get(ValidationMessages.PatternMismatch));
 
             return Instance;
         }
@@ -80,7 +80,7 @@ namespace Sam.Validator
         protected T Must(Func<bool> condition)
         {
             if (!condition())
-                AddError(Localizer.Get(ValidationMessages.CustomConditionFailed));
+                AddError(ValidationMessages.Get(ValidationMessages.CustomConditionFailed));
 
             return Instance;
         }
@@ -89,7 +89,7 @@ namespace Sam.Validator
         {
             var value = this.value?.ToString();
             if (!string.IsNullOrWhiteSpace(value) && !Regex.IsMatch(value, @"^[^@\s]+@[^@\s]+\.[^@\s]+$"))
-                AddError(Localizer.Get(ValidationMessages.InvalidEmail));
+                AddError(ValidationMessages.Get(ValidationMessages.InvalidEmail));
 
             return Instance;
         }
@@ -98,7 +98,7 @@ namespace Sam.Validator
         {
             var value = this.value?.ToString();
             if (!string.IsNullOrWhiteSpace(value) && !allowed.Contains(value))
-                AddError(Localizer.Get(ValidationMessages.MustBeOneOf, string.Join(", ", allowed)));
+                AddError(ValidationMessages.Get(ValidationMessages.MustBeOneOf, string.Join(", ", allowed)));
 
             return Instance;
         }
@@ -106,7 +106,7 @@ namespace Sam.Validator
         protected T GreaterThan<TValue>(TValue min) where TValue : IComparable
         {
             if (value is TValue comparable && comparable.CompareTo(min) <= 0)
-                AddError(Localizer.Get(ValidationMessages.GreaterThan, min));
+                AddError(ValidationMessages.Get(ValidationMessages.GreaterThan, min));
 
             return Instance;
         }
@@ -114,7 +114,7 @@ namespace Sam.Validator
         protected T Must(Func<T, bool> predicate)
         {
             if (!predicate(Instance))
-                AddError(Localizer.Get(ValidationMessages.CustomConditionFailed));
+                AddError(ValidationMessages.Get(ValidationMessages.CustomConditionFailed));
 
             return Instance;
         }
@@ -122,7 +122,7 @@ namespace Sam.Validator
         protected T LessThan<TValue>(TValue max) where TValue : IComparable
         {
             if (value is TValue comparable && comparable.CompareTo(max) >= 0)
-                AddError(Localizer.Get(ValidationMessages.LessThan, max));
+                AddError(ValidationMessages.Get(ValidationMessages.LessThan, max));
 
             return Instance;
         }
